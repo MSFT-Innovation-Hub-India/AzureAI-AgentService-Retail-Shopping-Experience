@@ -1,0 +1,113 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "contentVersion": "1.0.0.0",
+        "triggers": {
+            "When_a_HTTP_request_is_received": {
+                "type": "Request",
+                "kind": "Http",
+                "inputs": {
+                    "method": "POST",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "OrderId": {
+                                "type": "string"
+                            },
+                            "Destination": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "actions": {
+            "Create_Shipment_Order": {
+                "runAfter": {},
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['sql-1']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "body": {
+                        "query": "INSERT INTO consignments (\n    OrderID,\n    Consignee,\n    Origin,\n    Destination,\n    Weight_kg,\n    Volume_m3,\n    FreightType,\n    OrderDate,\n    EstimatedDeliveryDate,\n    ActualDeliveryDate,\n    Status,\n    ContosoOrderNmber\n)\nVALUES\n( (SELECT ISNULL(MAX(OrderID), 0) + 1 FROM Consignments), 'Company A', 'Bengaluru', '@{triggerBody()?['Destination']}', 500, 2.5, 'LTL', CONVERT(DATE, GETDATE()), CONVERT(DATE, DATEADD(DAY, 5, GETDATE())), NULL, 'Pending Pickup', '@{triggerBody()?['OrderId']}')"
+                    },
+                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('default'))},@{encodeURIComponent(encodeURIComponent('default'))}/query/sql"
+                },
+                "operationOptions": "DisableAsyncPattern"
+            },
+            "Response": {
+                "runAfter": {
+                    "Retrieve_Shipment_Order_Details": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Response",
+                "kind": "Http",
+                "inputs": {
+                    "statusCode": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": "@body('Retrieve_Shipment_Order_Details')?['ResultSets']['Table1']\r\n"
+                }
+            },
+            "Retrieve_Shipment_Order_Details": {
+                "runAfter": {
+                    "Create_Shipment_Order": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['sql']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "body": {
+                        "query": "SELECT * FROM consignments WHERE ContosoOrderNmber = '@{triggerBody()?['OrderId']}'"
+                    },
+                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('default'))},@{encodeURIComponent(encodeURIComponent('default'))}/query/sql"
+                },
+                "operationOptions": "DisableAsyncPattern"
+            }
+        },
+        "outputs": {},
+        "parameters": {
+            "contractid": {
+                "defaultValue": "''",
+                "type": "String"
+            },
+            "supplierid": {
+                "defaultValue": "''",
+                "type": "String"
+            },
+            "$connections": {
+                "type": "Object",
+                "defaultValue": {}
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "sql-1": {
+                    "id": "/subscriptions/<your-subscription-id>/providers/Microsoft.Web/locations/swedencentral/managedApis/sql",
+                    "connectionId": "/subscriptions/<your-subscription-id>/resourceGroups/<your-resource-group>/providers/Microsoft.Web/connections/sql-4",
+                    "connectionName": "sql-4"
+                },
+                "sql": {
+                    "id": "/subscriptions/<your-subscription-id>/providers/Microsoft.Web/locations/swedencentral/managedApis/sql",
+                    "connectionId": "/subscriptions/<your-subscription-id>/resourceGroups/<your-resource-group>providers/Microsoft.Web/connections/sql-3",
+                    "connectionName": "sql-3"
+                }
+            }
+        }
+    }
+}
