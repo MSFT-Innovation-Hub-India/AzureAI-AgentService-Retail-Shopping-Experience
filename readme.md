@@ -1,6 +1,7 @@
-# Contoso Retail Shopping Assistant
+# AzureAI-AgentService-Retail-Shopping-Experience
 
-This sample app is a conversational AI bot designed to assist customers of Contoso Retail Fashion with their shopping needs. The primary goal of this app is to showcase the integration capabilities of the Azure AI Agent Service.
+
+This sample app is a Agentic AI bot designed to assist customers of Contoso Retail Fashion with their shopping needs. The primary goal of this app is to showcase the integration capabilities of the Azure AI Agent Service.
 
 **Features**
 
