@@ -5,15 +5,14 @@ for building a retail shopping assistant with OpenAPI integration and function c
 """
 
 import asyncio
-import os
+import json
 from typing import Optional, Annotated
+import requests
+from pydantic import Field
 from agent_framework import ChatAgent
 from agent_framework_azure_ai import AzureAIClient
 from azure.identity import DefaultAzureCredential
 from config import DefaultConfig as config
-from pydantic import Field
-import json
-import requests
 
 def search_products_by_category(
     category: Annotated[str, Field(description="The product category to search for, e.g., 'winter wear', 'summer wear', 'accessories'")]
@@ -28,7 +27,7 @@ def search_products_by_category(
         response.raise_for_status()
         return json.dumps(response.json())
     except Exception as e:
-        return json.dumps({"error": f"Failed to search products: {str(e)}"})
+        return json.dumps({"error": "Failed to search products: {0}".format(str(e))})
 
 
 def search_products_by_category_and_price(
@@ -49,7 +48,7 @@ def search_products_by_category_and_price(
         response.raise_for_status()
         return json.dumps(response.json())
     except Exception as e:
-        return json.dumps({"error": f"Failed to search products by price: {str(e)}"})
+        return json.dumps({"error": "Failed to search products by price: {0}".format(str(e))})
 
 
 def order_product(
@@ -70,7 +69,7 @@ def order_product(
         response.raise_for_status()
         return json.dumps(response.json())
     except Exception as e:
-        return json.dumps({"error": f"Failed to order product: {str(e)}"})
+        return json.dumps({"error": "Failed to order product: {0}".format(str(e))})
 
 
 def create_delivery_order(
@@ -95,7 +94,7 @@ def create_delivery_order(
         response.raise_for_status()
         return json.dumps({"status": "success", "details": response.text})
     except Exception as e:
-        return json.dumps({"error": f"Failed to create delivery order: {str(e)}"})
+        return json.dumps({"error": "Failed to create delivery order: {0}".format(str(e))})
 
 
 class ContosoRetailAgent:
@@ -163,8 +162,8 @@ When customers want to order products, collect necessary details and process the
             tools=self.tools  # Attach function calling tools
         )
         
-        print(f"✓ Created Contoso Retail Fashion Agent using Microsoft Agent Framework")
-        print(f"✓ Attached {len(self.tools)} function tools for product operations")
+        print("✓ Created Contoso Retail Fashion Agent using Microsoft Agent Framework")
+        print("✓ Attached {0} function tools for product operations".format(len(self.tools)))
         return self.agent
     
     async def run_agent(self, user_message: str) -> str:
