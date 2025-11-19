@@ -6,3 +6,5 @@ azure-identity
 python-dotenv
 jsonref
 opencensus-ext-azure
+agent-framework-core
+agent-framework-azure-ai
