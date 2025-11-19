@@ -8,7 +8,7 @@ import asyncio
 import os
 from typing import Optional, Annotated
 from agent_framework import ChatAgent
-from agent_framework.azure_ai import AzureAIChatClient
+from agent_framework_azure_ai import AzureAIClient
 from azure.identity import DefaultAzureCredential
 from config import DefaultConfig as config
 from pydantic import Field
@@ -115,11 +115,10 @@ class ContosoRetailAgent:
         conn_parts = self.config.az_agentic_ai_service_connection_string.split(';')
         self.endpoint = f"https://{conn_parts[0]}" if not conn_parts[0].startswith('https://') else conn_parts[0]
         
-        # Create Azure AI chat client for the agent
-        self.chat_client = AzureAIChatClient(
+        # Create Azure AI client for the agent
+        self.azure_client = AzureAIClient(
             endpoint=self.endpoint,
-            credential=self.credential,
-            model="gpt-4o-mini"
+            credential=self.credential
         )
         
         # Define agent instructions
@@ -153,9 +152,12 @@ When customers want to order products, collect necessary details and process the
         Returns:
             ChatAgent: Configured chat agent instance with attached tools
         """
+        # Get the chat client from Azure AI client
+        chat_client = self.azure_client.get_chat_client(model="gpt-4o-mini")
+        
         # Create the agent with the chat client, instructions, and tools
         self.agent = ChatAgent(
-            chat_client=self.chat_client,
+            chat_client=chat_client,
             instructions=self.instructions,
             name="contoso-retail-fashions-assistant",
             tools=self.tools  # Attach function calling tools
